@@ -13,24 +13,33 @@ export interface Config {
   yaml_file_path: string;
   context_max_len: number;
   guild_id_list: string[];
+  add_auxiliary: boolean;
 }
 
 export const Config: Schema<Config> = Schema.object({
   js_file_path: Schema.path({
     filters: ["file", "directory"],
     allowCreate: false,
-  }).required(true),
+  }).required(true).description("js文件"),
   yaml_file_path: Schema.path({ filters: ["file"], allowCreate: false })
-    .required(true),
+    .required(true).description("yaml文件"),
   context_max_len: Schema.number().min(3).max(50).step(1).role("slider")
-    .default(8),
-  guild_id_list: Schema.array(Schema.string().required(true)).required(true),
+    .default(8).description("上下文最多消息条数"),
+  guild_id_list: Schema.array(Schema.string().required(true)).required(true)
+    .description("所启用群号"),
+  add_auxiliary: Schema.boolean().default(true).description("辅助提示"),
 });
 
 export function apply(ctx: Context, config: Config) {
   const logger = new Logger("custom-never");
 
-  let { js_file_path, yaml_file_path, context_max_len, guild_id_list } = config;
+  let {
+    js_file_path,
+    yaml_file_path,
+    context_max_len,
+    guild_id_list,
+    add_auxiliary,
+  } = config;
 
   let message_chain_p_cid: { [key: string]: Message[] } = {}; //不同群(频道)内是不同的消息列表
   let chat_func: CustomChat = require(path.resolve(js_file_path)); //导入自定义的chat函数
@@ -39,10 +48,11 @@ export function apply(ctx: Context, config: Config) {
   ); //同理导入prompt文件
 
   ctx.middleware(async (s, next) => {
-    let { cid, guildId } = s;
+    const { guildId } = s;
     //是否在群(频道)列表内
     if (guild_id_list.map((v) => v.trim()).includes(guildId.trim())) {
-      let { content } = s;
+      let { content, cid, userId, username } = s;
+      if (add_auxiliary) content = `[${userId},${username}]:` + content;
       if (!(message_chain_p_cid[cid] instanceof Array)) {
         message_chain_p_cid[cid] = [];
       }
@@ -61,7 +71,10 @@ export function apply(ctx: Context, config: Config) {
         [...prompt, ...message_chain_p_cid[cid]],
         undefined as FreeChat,
       );
-      if (res_message.content.trim() != "") {
+      if (
+        typeof res_message.content == "string" &&
+        res_message.content.trim() != ""
+      ) {
         if (res_message.role == Role.Silent) {
           message_chain_p_cid[cid].push({
             role: Role.Silent,

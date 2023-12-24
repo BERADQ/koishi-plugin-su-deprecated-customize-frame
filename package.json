@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-su-deprecated-customize-frame",
   "description": "已弃用的su-chat系列的custom，临时独立框架",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "lib/index.js",
   "typings": [
     "lib/index.d.ts",
