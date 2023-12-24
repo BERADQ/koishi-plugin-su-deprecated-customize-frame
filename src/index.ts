@@ -72,6 +72,7 @@ export function apply(ctx: Context, config: Config) {
         undefined as FreeChat,
       );
       if (
+        typeof res_message == "object" &&
         typeof res_message.content == "string" &&
         res_message.content.trim() != ""
       ) {
