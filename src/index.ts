@@ -14,6 +14,7 @@ export interface Config {
   context_max_len: number;
   guild_id_list: string[];
   add_auxiliary: boolean;
+  enable_su_chat_style_logging: boolean;
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -28,6 +29,9 @@ export const Config: Schema<Config> = Schema.object({
   guild_id_list: Schema.array(Schema.string().required(true)).required(true)
     .description("所启用群号"),
   add_auxiliary: Schema.boolean().default(true).description("辅助提示"),
+  enable_su_chat_style_logging: Schema.boolean().default(false).description(
+    "是否开启su-chat风格的日志",
+  ),
 });
 
 export function apply(ctx: Context, config: Config) {
@@ -39,6 +43,7 @@ export function apply(ctx: Context, config: Config) {
     context_max_len,
     guild_id_list,
     add_auxiliary,
+    enable_su_chat_style_logging,
   } = config;
 
   let message_chain_p_cid: { [key: string]: Message[] } = {}; //不同群(频道)内是不同的消息列表
@@ -48,6 +53,7 @@ export function apply(ctx: Context, config: Config) {
   ); //同理导入prompt文件
 
   ctx.middleware(async (s, next) => {
+    if (enable_su_chat_style_logging) logger.info("NE: 启动服务");
     const { guildId } = s;
     //是否在群(频道)列表内
     if (guild_id_list.map((v) => v.trim()).includes(guildId.trim())) {
@@ -55,6 +61,7 @@ export function apply(ctx: Context, config: Config) {
       if (add_auxiliary) content = `[${userId},${username}]:` + content;
       if (!(message_chain_p_cid[cid] instanceof Array)) {
         message_chain_p_cid[cid] = [];
+        if (enable_su_chat_style_logging) logger.info(`[${s.cid}]开始会话`);
       }
       limit_length(message_chain_p_cid[cid], context_max_len);
       let current_message: Message = { role: Role.User, content };
@@ -65,6 +72,7 @@ export function apply(ctx: Context, config: Config) {
         vits: ctx.vits,
         logger,
       };
+      if (enable_su_chat_style_logging) logger.info(content);
       let res_message: Message = await chat_func(
         chat_param,
         current_message,
