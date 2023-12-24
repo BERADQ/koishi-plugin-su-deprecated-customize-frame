@@ -3,6 +3,7 @@ import {} from "@initencounter/vits";
 import path from "path";
 import fs from "fs";
 import YAML from "yaml";
+import { Role } from "./chat";
 
 export const name = "su-deprecated-customize-frame";
 

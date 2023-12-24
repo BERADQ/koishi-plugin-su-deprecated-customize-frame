@@ -15,16 +15,16 @@ declare global {
     messages: Message[],
     temperature: number,
   ) => Promise<Message>;
-  enum Role {
-    User = "user",
-    Assistant = "assistant",
-    System = "system",
-    Silent = "silent",
-  }
   interface ChatParam {
     axios: Function;
     session: Session;
     vits: Vits;
     logger: Logger;
   }
+}
+export enum Role {
+  User = "user",
+  Assistant = "assistant",
+  System = "system",
+  Silent = "silent",
 }
