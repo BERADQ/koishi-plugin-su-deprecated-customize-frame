@@ -52,8 +52,8 @@ export function apply(ctx: Context, config: Config) {
     fs.readFileSync(path.resolve(yaml_file_path), { encoding: "utf-8" }),
   ); //同理导入prompt文件
 
+  if (enable_su_chat_style_logging) logger.info("NE: 启动服务");
   ctx.middleware(async (s, next) => {
-    if (enable_su_chat_style_logging) logger.info("NE: 启动服务");
     const { guildId } = s;
     //是否在群(频道)列表内
     if (guild_id_list.map((v) => v.trim()).includes(guildId.trim())) {
