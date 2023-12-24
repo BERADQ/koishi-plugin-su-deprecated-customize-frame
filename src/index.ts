@@ -5,6 +5,7 @@ import fs from "fs";
 import YAML from "yaml";
 import { Role } from "./chat";
 
+export const inject = { optional: ["vits"] };
 export const name = "su-deprecated-customize-frame";
 
 export interface Config {
