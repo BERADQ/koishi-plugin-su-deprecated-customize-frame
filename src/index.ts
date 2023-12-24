@@ -1,6 +1,8 @@
 import { Context, Logger, Schema } from "koishi";
 import {} from "@initencounter/vits";
 import path from "path";
+import fs from "fs";
+import YAML from "yaml";
 
 export const name = "su-deprecated-customize-frame";
 
@@ -27,11 +29,16 @@ export function apply(ctx: Context, config: Config) {
   const logger = new Logger("custom-never");
 
   let { js_file_path, yaml_file_path, context_max_len, cid_list } = config;
-  let message_chain_p_cid: { [key: string]: Message[] } = {};
-  let chat_func: CustomChat = require(path.resolve(js_file_path));
-  let prompt: Message[] = require(path.resolve(yaml_file_path));
+
+  let message_chain_p_cid: { [key: string]: Message[] } = {}; //不同群(频道)内是不同的消息列表
+  let chat_func: CustomChat = require(path.resolve(js_file_path)); //导入自定义的chat函数
+  let prompt: Message[] = YAML.parse(
+    fs.readFileSync(path.resolve(yaml_file_path), { encoding: "utf-8" }),
+  ); //同理导入prompt文件
+
   ctx.middleware(async (s, next) => {
     let { cid } = s;
+    //是否在群(频道)列表内
     if (cid_list.includes(cid)) {
       let { content } = s;
       if (!(message_chain_p_cid[cid] instanceof Array)) {
