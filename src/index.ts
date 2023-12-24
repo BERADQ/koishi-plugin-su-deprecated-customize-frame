@@ -10,7 +10,7 @@ export interface Config {
   js_file_path: string;
   yaml_file_path: string;
   context_max_len: number;
-  cid_list: string[];
+  guild_id_list: string[];
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -22,13 +22,13 @@ export const Config: Schema<Config> = Schema.object({
     .required(true),
   context_max_len: Schema.number().min(3).max(50).step(1).role("slider")
     .default(8),
-  cid_list: Schema.array(Schema.string().required(true)).required(true),
+  guild_id_list: Schema.array(Schema.string().required(true)).required(true),
 });
 
 export function apply(ctx: Context, config: Config) {
   const logger = new Logger("custom-never");
 
-  let { js_file_path, yaml_file_path, context_max_len, cid_list } = config;
+  let { js_file_path, yaml_file_path, context_max_len, guild_id_list } = config;
 
   let message_chain_p_cid: { [key: string]: Message[] } = {}; //不同群(频道)内是不同的消息列表
   let chat_func: CustomChat = require(path.resolve(js_file_path)); //导入自定义的chat函数
@@ -37,9 +37,9 @@ export function apply(ctx: Context, config: Config) {
   ); //同理导入prompt文件
 
   ctx.middleware(async (s, next) => {
-    let { cid } = s;
+    let { cid, guildId } = s;
     //是否在群(频道)列表内
-    if (cid_list.includes(cid)) {
+    if (guild_id_list.map((v) => v.trim()).includes(guildId.trim())) {
       let { content } = s;
       if (!(message_chain_p_cid[cid] instanceof Array)) {
         message_chain_p_cid[cid] = [];
