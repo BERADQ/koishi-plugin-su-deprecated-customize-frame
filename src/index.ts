@@ -36,7 +36,6 @@ export const Config: Schema<Config> = Schema.object({
 
 export function apply(ctx: Context, config: Config) {
   const logger = new Logger("custom-never");
-
   let {
     js_file_path,
     yaml_file_path,
@@ -86,7 +85,7 @@ export function apply(ctx: Context, config: Config) {
       ) {
         if (res_message.role == Role.Silent) {
           message_chain_p_cid[cid].push({
-            role: Role.Silent,
+            role: Role.Assistant,
             content: res_message.content,
           });
         } else {
