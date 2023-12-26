@@ -64,7 +64,7 @@ export function apply(ctx: Context, config: Config) {
     const { guildId } = s;
     //是否在群(频道)列表内
     if (
-      (enable_private_chat && !(typeof guildId != "string")) ||
+      (enable_private_chat && typeof guildId != "string") ||
       (typeof guildId == "string" &&
         guild_id_list.map((v) => v.trim()).includes(guildId.trim()))
     ) {
