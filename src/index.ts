@@ -15,6 +15,7 @@ export interface Config {
   guild_id_list: string[];
   add_auxiliary: boolean;
   enable_su_chat_style_logging: boolean;
+  enable_private_chat: boolean;
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -32,6 +33,9 @@ export const Config: Schema<Config> = Schema.object({
   enable_su_chat_style_logging: Schema.boolean().default(false).description(
     "是否开启su-chat风格的日志",
   ),
+  enable_private_chat: Schema.boolean().default(true).description(
+    "在私聊中启用",
+  ),
 });
 
 export function apply(ctx: Context, config: Config) {
@@ -43,6 +47,7 @@ export function apply(ctx: Context, config: Config) {
     guild_id_list,
     add_auxiliary,
     enable_su_chat_style_logging,
+    enable_private_chat,
   } = config;
 
   let message_chain_p_cid: { [key: string]: Message[] } = {}; //不同群(频道)内是不同的消息列表
@@ -52,10 +57,17 @@ export function apply(ctx: Context, config: Config) {
   ); //同理导入prompt文件
 
   if (enable_su_chat_style_logging) logger.info("NE: 启动服务");
+  ctx.command("sdcf.clean", "清空上下文").action((s) => {
+    message_chain_p_cid[s.session.cid] = [];
+  });
   ctx.middleware(async (s, next) => {
     const { guildId } = s;
     //是否在群(频道)列表内
-    if (guild_id_list.map((v) => v.trim()).includes(guildId.trim())) {
+    if (
+      (enable_private_chat && !(typeof guildId != "string")) ||
+      (typeof guildId == "string" &&
+        guild_id_list.map((v) => v.trim()).includes(guildId.trim()))
+    ) {
       let { content, cid, userId, username } = s;
       if (add_auxiliary) content = `[${userId},${username}]:` + content;
       if (!(message_chain_p_cid[cid] instanceof Array)) {
@@ -96,6 +108,7 @@ export function apply(ctx: Context, config: Config) {
         message_chain_p_cid[cid].pop();
       }
     }
+
     return next();
   });
 }
