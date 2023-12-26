@@ -61,10 +61,10 @@ export function apply(ctx: Context, config: Config) {
     message_chain_p_cid[s.session.cid] = [];
   });
   ctx.middleware(async (s, next) => {
-    const { guildId } = s;
+    const { guildId, isDirect } = s;
     //是否在群(频道)列表内
     if (
-      (enable_private_chat && typeof guildId != "string") ||
+      (enable_private_chat && isDirect) ||
       (typeof guildId == "string" &&
         guild_id_list.map((v) => v.trim()).includes(guildId.trim()))
     ) {
